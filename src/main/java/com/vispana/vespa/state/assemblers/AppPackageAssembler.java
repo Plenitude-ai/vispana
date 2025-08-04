@@ -60,11 +60,34 @@ public class AppPackageAssembler {
       }
     }
 
+    List<String> queryProfileTypesContent =
+        requestGetWithDefaultValue(
+            appUrl + "/content/search/query-profiles/types/", List.class, List.of());
+    if (queryProfileTypesContent.isEmpty()) {
+      queryProfileTypesContent = List.of();
+    } else {
+      try {
+        queryProfileTypesContent =
+            queryProfileTypesContent.stream()
+                .map(
+                    fullUrl -> {
+                      // Subtract filename from URL
+                      int lastSlashIndex = fullUrl.lastIndexOf('/');
+                      return lastSlashIndex >= 0 ? fullUrl.substring(lastSlashIndex + 1) : fullUrl;
+                    })
+                .filter(name -> name.endsWith(".xml"))
+                .toList();
+      } catch (Exception e) {
+        queryProfileTypesContent = List.of("Error parsing query profile types");
+      }
+    }
+
     return new ApplicationPackage(
         appSchema.getGeneration().toString(),
         servicesContent,
         hostContent,
         modelsContent,
-        queryProfilesContent);
+        queryProfilesContent,
+        queryProfileTypesContent);
   }
 }

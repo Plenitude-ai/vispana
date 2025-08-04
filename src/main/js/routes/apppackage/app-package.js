@@ -59,6 +59,15 @@ function AppPackage() {
             "contentType": "json"
         })
     }
+    // possibly add query-profile-types
+    let queryProfileTypesContent = vespaState.applicationPackage.queryProfileTypesContent;
+    if (queryProfileTypesContent.length > 0) {
+        tabsContent.push({
+            "tabName": "query-profile-types",
+            "payload": JSON.stringify(queryProfileTypesContent, null, 2),
+            "contentType": "json"
+        })
+    }
 
     // add the schemas
     tabsContent.push(...schemas)

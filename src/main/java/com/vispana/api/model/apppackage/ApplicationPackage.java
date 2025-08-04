@@ -8,4 +8,5 @@ public record ApplicationPackage(
     String servicesContent,
     String hostsContent,
     List<String> modelsContent,
-    List<String> queryProfilesContent) {}
+    List<String> queryProfilesContent,
+    List<String> queryProfileTypesContent) {}
