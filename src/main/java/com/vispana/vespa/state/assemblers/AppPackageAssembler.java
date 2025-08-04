@@ -16,8 +16,8 @@ public class AppPackageAssembler {
     var appSchema = requestGet(appUrl, ApplicationSchema.class);
     var hostContent = requestGetWithDefaultValue(appUrl + "/content/hosts.xml", String.class, "");
     var servicesContent = requestGet(appUrl + "/content/services.xml", String.class);
-    var modelsContentRaw =
-        requestGetWithDefaultValue(appUrl + "/content/models/", String.class, "");
+
+    var modelsContentRaw = requestGetWithDefaultValue(appUrl + "/content/models/", String.class, "");
 
     // Parse JSON array and extract model names
     String modelsContent;
@@ -26,24 +26,49 @@ public class AppPackageAssembler {
     } else {
       try {
         ObjectMapper mapper = new ObjectMapper();
-        List<String> fullUrls =
-            mapper.readValue(modelsContentRaw, new TypeReference<List<String>>() {});
+        List<String> fullUrls = mapper.readValue(modelsContentRaw, new TypeReference<List<String>>() {
+        });
 
-        modelsContent =
-            fullUrls.stream()
-                .map(
-                    fullUrl -> {
-                      // Subtract filename from URL
-                      int lastSlashIndex = fullUrl.lastIndexOf('/');
-                      return lastSlashIndex >= 0 ? fullUrl.substring(lastSlashIndex + 1) : fullUrl;
-                    })
-                .collect(Collectors.joining("\n"));
+        modelsContent = fullUrls.stream()
+            .map(
+                fullUrl -> {
+                  // Subtract filename from URL
+                  int lastSlashIndex = fullUrl.lastIndexOf('/');
+                  return lastSlashIndex >= 0 ? fullUrl.substring(lastSlashIndex + 1) : fullUrl;
+                })
+            .collect(Collectors.joining("\n"));
       } catch (Exception e) {
         // Handle JSON parsing error - return empty list or throw exception
         modelsContent = "Error parsing models";
       }
     }
+
+    // http://localhost:19071/application/v2/tenant/default/session/23
+    List<String> queryProfilesContent = requestGetWithDefaultValue(
+        appUrl + "/content/search/query-profiles/", List.class, List.of());
+    if (queryProfilesContent.isEmpty()) {
+      queryProfilesContent = List.of();
+    } else {
+      try {
+        queryProfilesContent = queryProfilesContent.stream()
+            .map(
+                fullUrl -> {
+                  // Subtract filename from URL
+                  int lastSlashIndex = fullUrl.lastIndexOf('/');
+                  return lastSlashIndex >= 0 ? fullUrl.substring(lastSlashIndex + 1) : fullUrl;
+                })
+            .filter(name -> name.endsWith(".xml"))
+            .toList();
+      } catch (Exception e) {
+        queryProfilesContent = List.of("Error parsing query profiles");
+      }
+    }
+
     return new ApplicationPackage(
-        appSchema.getGeneration().toString(), servicesContent, hostContent, modelsContent);
+        appSchema.getGeneration().toString(),
+        servicesContent,
+        hostContent,
+        modelsContent,
+        queryProfilesContent);
   }
 }
