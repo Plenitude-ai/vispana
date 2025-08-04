@@ -42,11 +42,11 @@ function AppPackage() {
 
     // possibly add models
     let modelsContent = vespaState.applicationPackage.modelsContent;
-    if (modelsContent) {
+    if (modelsContent.length > 0) {
         tabsContent.push({
             "tabName": "models",
-            "payload": modelsContent,
-            "contentType": "text"
+            "payload": JSON.stringify(modelsContent, null, 2),
+            "contentType": "json"
         })
     }
 

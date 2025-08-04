@@ -7,5 +7,5 @@ public record ApplicationPackage(
     String appPackageGeneration,
     String servicesContent,
     String hostsContent,
-    String modelsContent,
+    List<String> modelsContent,
     List<String> queryProfilesContent) {}

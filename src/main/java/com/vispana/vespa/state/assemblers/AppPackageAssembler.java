@@ -3,12 +3,9 @@ package com.vispana.vespa.state.assemblers;
 import static com.vispana.vespa.state.helpers.Request.requestGet;
 import static com.vispana.vespa.state.helpers.Request.requestGetWithDefaultValue;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vispana.api.model.apppackage.ApplicationPackage;
 import com.vispana.client.vespa.model.ApplicationSchema;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class AppPackageAssembler {
 
@@ -17,48 +14,47 @@ public class AppPackageAssembler {
     var hostContent = requestGetWithDefaultValue(appUrl + "/content/hosts.xml", String.class, "");
     var servicesContent = requestGet(appUrl + "/content/services.xml", String.class);
 
-    var modelsContentRaw = requestGetWithDefaultValue(appUrl + "/content/models/", String.class, "");
+    List<String> modelsContent =
+        requestGetWithDefaultValue(appUrl + "/content/models/", List.class, List.of());
 
     // Parse JSON array and extract model names
-    String modelsContent;
-    if (modelsContentRaw.isEmpty()) {
-      modelsContent = "";
+    if (modelsContent.isEmpty()) {
+      modelsContent = List.of();
     } else {
       try {
-        ObjectMapper mapper = new ObjectMapper();
-        List<String> fullUrls = mapper.readValue(modelsContentRaw, new TypeReference<List<String>>() {
-        });
-
-        modelsContent = fullUrls.stream()
-            .map(
-                fullUrl -> {
-                  // Subtract filename from URL
-                  int lastSlashIndex = fullUrl.lastIndexOf('/');
-                  return lastSlashIndex >= 0 ? fullUrl.substring(lastSlashIndex + 1) : fullUrl;
-                })
-            .collect(Collectors.joining("\n"));
+        modelsContent =
+            modelsContent.stream()
+                .map(
+                    fullUrl -> {
+                      // Subtract filename from URL
+                      int lastSlashIndex = fullUrl.lastIndexOf('/');
+                      return lastSlashIndex >= 0 ? fullUrl.substring(lastSlashIndex + 1) : fullUrl;
+                    })
+                .toList();
       } catch (Exception e) {
         // Handle JSON parsing error - return empty list or throw exception
-        modelsContent = "Error parsing models";
+        modelsContent = List.of("Error parsing models");
       }
     }
 
     // http://localhost:19071/application/v2/tenant/default/session/23
-    List<String> queryProfilesContent = requestGetWithDefaultValue(
-        appUrl + "/content/search/query-profiles/", List.class, List.of());
+    List<String> queryProfilesContent =
+        requestGetWithDefaultValue(
+            appUrl + "/content/search/query-profiles/", List.class, List.of());
     if (queryProfilesContent.isEmpty()) {
       queryProfilesContent = List.of();
     } else {
       try {
-        queryProfilesContent = queryProfilesContent.stream()
-            .map(
-                fullUrl -> {
-                  // Subtract filename from URL
-                  int lastSlashIndex = fullUrl.lastIndexOf('/');
-                  return lastSlashIndex >= 0 ? fullUrl.substring(lastSlashIndex + 1) : fullUrl;
-                })
-            .filter(name -> name.endsWith(".xml"))
-            .toList();
+        queryProfilesContent =
+            queryProfilesContent.stream()
+                .map(
+                    fullUrl -> {
+                      // Subtract filename from URL
+                      int lastSlashIndex = fullUrl.lastIndexOf('/');
+                      return lastSlashIndex >= 0 ? fullUrl.substring(lastSlashIndex + 1) : fullUrl;
+                    })
+                .filter(name -> name.endsWith(".xml"))
+                .toList();
       } catch (Exception e) {
         queryProfilesContent = List.of("Error parsing query profiles");
       }
