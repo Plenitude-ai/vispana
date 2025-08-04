@@ -40,6 +40,16 @@ function AppPackage() {
         })
     }
 
+    // possibly add models
+    let modelsContent = vespaState.applicationPackage.modelsContent;
+    if (modelsContent) {
+        tabsContent.push({
+            "tabName": "models",
+            "payload": modelsContent,
+            "contentType": "text"
+        })
+    }
+
     // add the schemas
     tabsContent.push(...schemas)
 
