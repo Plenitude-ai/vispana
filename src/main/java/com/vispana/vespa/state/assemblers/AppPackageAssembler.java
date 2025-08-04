@@ -5,7 +5,9 @@ import static com.vispana.vespa.state.helpers.Request.requestGetWithDefaultValue
 
 import com.vispana.api.model.apppackage.ApplicationPackage;
 import com.vispana.client.vespa.model.ApplicationSchema;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AppPackageAssembler {
 
@@ -37,16 +39,14 @@ public class AppPackageAssembler {
       }
     }
 
-    // http://localhost:19071/application/v2/tenant/default/session/23
-    List<String> queryProfilesContent =
+    Map<String, String> queryProfilesContent = new HashMap<String, String>();
+    List<String> queryProfileNames =
         requestGetWithDefaultValue(
             appUrl + "/content/search/query-profiles/", List.class, List.of());
-    if (queryProfilesContent.isEmpty()) {
-      queryProfilesContent = List.of();
-    } else {
+    if (!queryProfileNames.isEmpty()) {
       try {
-        queryProfilesContent =
-            queryProfilesContent.stream()
+        queryProfileNames =
+            queryProfileNames.stream()
                 .map(
                     fullUrl -> {
                       // Subtract filename from URL
@@ -55,20 +55,25 @@ public class AppPackageAssembler {
                     })
                 .filter(name -> name.endsWith(".xml"))
                 .toList();
+        for (String queryProfileName : queryProfileNames) {
+          queryProfilesContent.put(
+              queryProfileName,
+              requestGetWithDefaultValue(
+                  appUrl + "/content/search/query-profiles/" + queryProfileName, String.class, ""));
+        }
       } catch (Exception e) {
-        queryProfilesContent = List.of("Error parsing query profiles");
+        queryProfilesContent = Map.of("Error", "Error parsing query profiles");
       }
     }
 
-    List<String> queryProfileTypesContent =
+    Map<String, String> queryProfileTypesContent = new HashMap<String, String>();
+    List<String> queryProfileTypeNames =
         requestGetWithDefaultValue(
             appUrl + "/content/search/query-profiles/types/", List.class, List.of());
-    if (queryProfileTypesContent.isEmpty()) {
-      queryProfileTypesContent = List.of();
-    } else {
+    if (!queryProfileTypeNames.isEmpty()) {
       try {
-        queryProfileTypesContent =
-            queryProfileTypesContent.stream()
+        queryProfileTypeNames =
+            queryProfileTypeNames.stream()
                 .map(
                     fullUrl -> {
                       // Subtract filename from URL
@@ -77,8 +82,16 @@ public class AppPackageAssembler {
                     })
                 .filter(name -> name.endsWith(".xml"))
                 .toList();
+        for (String queryProfileTypeName : queryProfileTypeNames) {
+          queryProfileTypesContent.put(
+              queryProfileTypeName,
+              requestGetWithDefaultValue(
+                  appUrl + "/content/search/query-profiles/types/" + queryProfileTypeName,
+                  String.class,
+                  ""));
+        }
       } catch (Exception e) {
-        queryProfileTypesContent = List.of("Error parsing query profile types");
+        queryProfileTypesContent = Map.of("Error", "Error parsing query profile types");
       }
     }
 

@@ -1,6 +1,7 @@
 package com.vispana.api.model.apppackage;
 
 import java.util.List;
+import java.util.Map;
 
 // Application package
 public record ApplicationPackage(
@@ -8,5 +9,5 @@ public record ApplicationPackage(
     String servicesContent,
     String hostsContent,
     List<String> modelsContent,
-    List<String> queryProfilesContent,
-    List<String> queryProfileTypesContent) {}
+    Map<String, String> queryProfilesContent,
+    Map<String, String> queryProfileTypesContent) {}
