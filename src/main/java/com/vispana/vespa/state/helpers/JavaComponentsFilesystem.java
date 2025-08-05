@@ -71,13 +71,13 @@ public class JavaComponentsFilesystem {
   // Main filesystem structure
   public static class Filesystem {
     private final String componentsJarName;
-    private final Map<String, FilesystemNode> root;
+    private final FilesystemNode root;
     private final int totalFiles;
 
     @JsonCreator
     public Filesystem(
         @JsonProperty("componentsJarName") String componentsJarName,
-        @JsonProperty("root") Map<String, FilesystemNode> root,
+        @JsonProperty("root") FilesystemNode root,
         @JsonProperty("totalFiles") int totalFiles) {
       this.componentsJarName = componentsJarName;
       this.root = root;
@@ -88,7 +88,7 @@ public class JavaComponentsFilesystem {
       return componentsJarName;
     }
 
-    public Map<String, FilesystemNode> getRoot() {
+    public FilesystemNode getRoot() {
       return root;
     }
 
@@ -111,7 +111,7 @@ public class JavaComponentsFilesystem {
 
       if (response.statusCode() != 200) {
         logger.error("Failed to download JAR: HTTP {}", response.statusCode());
-        return new Filesystem(componentsJarName, Map.of(), 0);
+        return new Filesystem(componentsJarName, null, 0);
       }
 
       Map<String, String> fileContents = new HashMap<>();
@@ -126,20 +126,20 @@ public class JavaComponentsFilesystem {
             String content = readFileContent(jarStream, fileName);
             fileContents.put(fileName, content);
             totalFiles++;
-            logger.debug("Extracted file: {}", fileName);
+            logger.info("Extracted file: {}", fileName);
           }
         }
       }
 
       // Build tree structure
-      Map<String, FilesystemNode> root = buildTree(fileContents);
+      FilesystemNode root = buildTree(fileContents);
 
       logger.info("Successfully built filesystem with {} files", totalFiles);
       return new Filesystem(componentsJarName, root, totalFiles);
 
     } catch (Exception e) {
       logger.error("Error building filesystem from JAR", e);
-      return new Filesystem(componentsJarName, Map.of(), 0);
+      return new Filesystem(componentsJarName, null, 0);
     }
   }
 
@@ -176,6 +176,8 @@ public class JavaComponentsFilesystem {
     String lowerName = fileName.toLowerCase();
     return lowerName.endsWith(".java")
         || lowerName.endsWith(".xml")
+        // || lowerName.endsWith(".class")
+        || lowerName.endsWith(".def")
         || lowerName.endsWith(".properties")
         || lowerName.endsWith(".txt")
         || lowerName.endsWith(".md")
@@ -190,15 +192,15 @@ public class JavaComponentsFilesystem {
   }
 
   /** Builds tree structure from flat file map */
-  private static Map<String, FilesystemNode> buildTree(Map<String, String> fileContents) {
-    Map<String, FilesystemNode> root = new HashMap<>();
+  private static FilesystemNode buildTree(Map<String, String> fileContents) {
+    Map<String, FilesystemNode> root_children = new HashMap<>();
 
     for (Map.Entry<String, String> entry : fileContents.entrySet()) {
       String filePath = entry.getKey();
       String content = entry.getValue();
 
       String[] pathParts = filePath.split("/");
-      Map<String, FilesystemNode> currentLevel = root;
+      Map<String, FilesystemNode> currentLevel = root_children;
 
       // Navigate/create directory structure
       for (int i = 0; i < pathParts.length - 1; i++) {
@@ -218,6 +220,7 @@ public class JavaComponentsFilesystem {
       currentLevel.put(fileName, fileNode);
     }
 
+    FilesystemNode root = new FilesystemNode("root", "/", false, null, root_children);
     return root;
   }
 
