@@ -3,6 +3,7 @@ import {androidstudio} from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import React from 'react'
 import {useOutletContext} from "react-router-dom";
 import TabView from "../../components/tabs/tab-view";
+import FileExplorer from "../../components/file-explorer/file-explorer";
 
 function AppPackage() {
     const vespaState = useOutletContext();
@@ -93,6 +94,16 @@ function AppPackage() {
             "contentType": "xml"
         })
     }
+    // HERE WE SHOULD ADD THE JAR ARCHIVE FILESYSTEM EXPLORER
+    let javaFs = vespaState.applicationPackage.javaComponentsContent;
+    if (javaFs) {
+        tabsContent.push({
+            "tabName": javaFs.componentsJarName,
+            "payload": javaFs,
+            "contentType": "filesystem"
+        });
+    }
+    
 
     // add the schemas
     tabsContent.push(...schemas)
@@ -103,9 +114,15 @@ function AppPackage() {
                 return {
                     "header": tab.tabName,
                     "content":
-                        <SyntaxHighlighter language={tab.contentType} style={androidstudio}>
-                            {tab.payload}
-                        </SyntaxHighlighter>
+                        tab.contentType === "filesystem" ? (
+                            <div className="overflow-auto max-h-[600px] p-4">
+                                <FileExplorer node={tab.payload} />
+                            </div>
+                        ) : (
+                            <SyntaxHighlighter language={tab.contentType} style={androidstudio}>
+                                {tab.payload}
+                            </SyntaxHighlighter>
+                        )
                 }
             }
         )
