@@ -99,7 +99,7 @@ function AppPackage() {
     if (javaFs) {
         tabsContent.push({
             "tabName": javaFs.componentsJarName,
-            "payload": javaFs,
+            "payload": javaFs.root,
             "contentType": "filesystem"
         });
     }
