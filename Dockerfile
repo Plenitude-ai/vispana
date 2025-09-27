@@ -11,13 +11,11 @@ RUN mvn package
 FROM amazoncorretto:21.0.1
 
 RUN mkdir /app
-
-# COPY src/ /app/src/
-# Copy only the built JAR from the builder stage
-COPY --from=builder /app/target/vispana-0.0.1-SNAPSHOT.jar /app/target/
-#COPY src /app
-
 WORKDIR /app
+
+# Copy only the built JAR & resources
+COPY src/main/resources src/main/resources
+COPY --from=builder /app/target/vispana-0.0.1-SNAPSHOT.jar target/
 
 # Expose the port that your Spring Boot application listens on (default is 8080)
 EXPOSE 4000
