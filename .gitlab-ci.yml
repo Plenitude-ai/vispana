@@ -15,24 +15,24 @@ stages:
 
 docker-build:
   # Use the official docker image.
-  image: docker:cli
+  image: docker:28-cli
   stage: build
   services:
-    - docker:dind
-  variables:
-    DOCKER_IMAGE_NAME: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    - docker:28-dind
   before_script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-  # All branches are tagged with $DOCKER_IMAGE_NAME (defaults to commit ref slug)
-  # Default branch is also tagged with `latest`
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    # Enable buildx and create builder
+    - docker buildx create --use --name multiarch-builder
+    - docker buildx inspect --bootstrap
   script:
-    - docker build --pull -t "$DOCKER_IMAGE_NAME" .
-    - docker push "$DOCKER_IMAGE_NAME"
-    - |
-      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
-        docker tag "$DOCKER_IMAGE_NAME" "$CI_REGISTRY_IMAGE:latest"
-        docker push "$CI_REGISTRY_IMAGE:latest"
-      fi
+    # Build for both AMD64 and ARM64
+    - docker buildx build 
+      --platform linux/amd64,linux/arm64 
+      --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA 
+      --tag $CI_REGISTRY_IMAGE:latest 
+      --push .
+  after_script:
+    - docker buildx rm multiarch-builder
   # # Run this job in a branch where a Dockerfile exists
   # rules:
   #   - if: $CI_COMMIT_BRANCH
