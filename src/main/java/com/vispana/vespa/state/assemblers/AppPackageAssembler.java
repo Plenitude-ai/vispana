@@ -5,10 +5,11 @@ import static com.vispana.vespa.state.helpers.Request.requestGetWithDefaultValue
 
 import com.vispana.api.model.apppackage.ApplicationPackage;
 import com.vispana.client.vespa.model.ApplicationSchema;
+import com.vispana.vespa.state.helpers.JavaComponentsFilesystem;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.vispana.vespa.state.helpers.JavaComponentsFilesystem;
 
 public class AppPackageAssembler {
 

@@ -1,8 +1,9 @@
 package com.vispana.api.model.apppackage;
 
+import com.vispana.vespa.state.helpers.JavaComponentsFilesystem;
+
 import java.util.List;
 import java.util.Map;
-import com.vispana.vespa.state.helpers.JavaComponentsFilesystem;
 
 // Application package
 public record ApplicationPackage(
