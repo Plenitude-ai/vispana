@@ -1,10 +1,11 @@
 # Stage 1: Build the JAR with Maven
-FROM maven:3.9.6-amazoncorretto-21 AS builder
-WORKDIR /app
-COPY pom.xml .
-COPY src/ ./src/
+FROM maven:3.9.6-eclipse-temurin-21 AS builder
 
-RUN mvn package
+WORKDIR /app
+COPY pom.xml package.json webpack.config.js ./
+COPY src/ src/
+
+RUN mvn package 
 
 # Stage 2: Run the JAR with a lightweight image
 FROM amazoncorretto:21.0.1
