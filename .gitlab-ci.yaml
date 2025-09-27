@@ -38,3 +38,5 @@ docker-build:
   #   - if: $CI_COMMIT_BRANCH
   #     exists:
   #       - Dockerfile
+  rules:
+    - when: always
