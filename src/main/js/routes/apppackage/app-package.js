@@ -4,6 +4,7 @@ import React from 'react'
 import {useOutletContext} from "react-router-dom";
 import TabView from "../../components/tabs/tab-view";
 import FileExplorer from "../../components/file-explorer/file-explorer";
+import SchemaDefinition from "../../components/schema-definition/schema-definition";
 
 function AppPackage() {
     const vespaState = useOutletContext();
@@ -17,8 +18,9 @@ function AppPackage() {
                 .map(data => {
                     return {
                         "tabName": `${data.schema.schemaName}.sd`,
-                        "payload": data.schema.schemaContent,
-                        "contentType": "yaml"
+                        "contentType": "schema-definition",
+                        "schemaContent": data.schema.schemaContent,
+                        "rankProfiles": data.schema.schemaRankProfiles
                     };
                 })
         })
@@ -118,6 +120,11 @@ function AppPackage() {
                             <div className="overflow-auto max-h-[600px] p-4">
                                 <FileExplorer node={tab.payload} />
                             </div>
+                        ) : tab.contentType === "schema-definition" ? (
+                            <SchemaDefinition
+                                schemaContent={tab.schemaContent}
+                                rankProfiles={tab.rankProfiles}
+                            />
                         ) : (
                             <SyntaxHighlighter language={tab.contentType} style={androidstudio}>
                                 {tab.payload}
