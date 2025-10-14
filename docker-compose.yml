@@ -1,0 +1,25 @@
+version: "3"
+services:
+  vispana:
+    container_name: vispana
+    image: plenitudeai/vispana:arm
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 4000:4000
+    networks:
+      - local
+
+  vispana-official:
+    container_name: vispana-official
+    image: vispana/vispana:latest
+    ports:
+      - 4400:4000
+    networks:
+      - local
+
+networks:
+  local:
+    name: vespanet
+    external: true
