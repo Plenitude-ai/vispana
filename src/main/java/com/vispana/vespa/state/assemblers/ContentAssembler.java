@@ -3,6 +3,7 @@ package com.vispana.vespa.state.assemblers;
 import static com.vispana.vespa.state.helpers.ContentNodesExtractor.contentNodesFromAppPackage;
 import static com.vispana.vespa.state.helpers.ProcessStatus.processStatus;
 import static com.vispana.vespa.state.helpers.Request.requestGet;
+import static com.vispana.vespa.state.helpers.Request.requestGetWithDefaultValue;
 import static com.vispana.vespa.state.helpers.SystemMetrics.systemMetrics;
 import static java.util.stream.Collectors.groupingBy;
 
@@ -95,9 +96,9 @@ public class ContentAssembler {
 
               // Get schema's rank-profiles
               var rankProfilesUrl = appUrl + "/content/schemas/" + schemaName + "/";
-              List<String> rankProfilesUrlsList = requestGet(rankProfilesUrl, List.class);
+              List<String> rankProfilesUrlsList = requestGetWithDefaultValue(rankProfilesUrl, List.class, List.of());
               Map<String, String> schemaRankProfiles;
-              if (rankProfilesUrlsList.size() > 0) {
+              if (!rankProfilesUrlsList.isEmpty()) {
                 schemaRankProfiles = rankProfilesUrlsList.stream()
                     .collect(
                         Collectors.toMap(
