@@ -4,6 +4,7 @@ import React from 'react'
 import {useOutletContext} from "react-router-dom";
 import TabView from "../../components/tabs/tab-view";
 import FileExplorer from "../../components/file-explorer/file-explorer";
+import AppPackageExplorer from "../../components/file-explorer/app-package-explorer";
 import SchemaDefinition from "../../components/schema-definition/schema-definition";
 
 function AppPackage() {
@@ -96,16 +97,15 @@ function AppPackage() {
             "contentType": "xml"
         })
     }
-    // HERE WE SHOULD ADD THE JAR ARCHIVE FILESYSTEM EXPLORER
-    let javaFs = vespaState.applicationPackage.javaComponentsContent;
-    if (javaFs) {
-        tabsContent.push({
-            "tabName": javaFs.componentsJarName,
-            "payload": javaFs.root,
-            "contentType": "filesystem"
-        });
-    }
     
+    // Add new lazy-loading app package explorer
+    // This fetches files on-demand to avoid OOM
+    // Pass configHost which the backend will convert to full app URL
+    tabsContent.push({
+        "tabName": "Full App Package",
+        "payload": vespaState.configHost,
+        "contentType": "app-package-explorer"
+    });
 
     // add the schemas
     tabsContent.push(...schemas)
@@ -119,6 +119,10 @@ function AppPackage() {
                         tab.contentType === "filesystem" ? (
                             <div className="overflow-auto max-h-[600px] p-4">
                                 <FileExplorer node={tab.payload} />
+                            </div>
+                        ) : tab.contentType === "app-package-explorer" ? (
+                            <div className="p-4">
+                                <AppPackageExplorer configHost={tab.payload} />
                             </div>
                         ) : tab.contentType === "schema-definition" ? (
                             <SchemaDefinition

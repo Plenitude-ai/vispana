@@ -188,6 +188,9 @@ export async function loader({request}) {
     const configHost = url.searchParams.get("config_host");
     const vespaState = getVespaState(configHost)
         .then(vespaState => {
+            // Add configHost to vespaState for use in child components
+            vespaState.configHost = configHost;
+            
             vespaState
                 .container
                 .clusters
