@@ -24,4 +24,4 @@ COPY --from=builder /app/target/vispana-0.0.1-SNAPSHOT.jar target/
 # Expose the port configured in application.properties
 EXPOSE 4000
 
-ENTRYPOINT ["java", "--enable-preview", "-jar", "target/vispana-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "--enable-preview", "-jar", "target/vispana-0.0.1-SNAPSHOT.jar", "-Xms512m", "-Xmx1g"]
