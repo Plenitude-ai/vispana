@@ -72,18 +72,11 @@ public class AppPackageAssembler {
       }
     }
 
-    // DISABLED: Java components filesystem causes OOM when loading all JARs
-    // Use the new lazy-loading /api/apppackage endpoints instead
-    // JavaComponentsFilesystem.Filesystem javaComponentsContent =
-    // JavaComponentsFilesystem.getComponentFilesystem(appUrl);
-
     return new ApplicationPackage(
         appSchema.getGeneration().toString(),
         servicesContent,
         hostContent,
         queryProfilesContent,
-        queryProfileTypesContent
-        // , javaComponentsContent
-        );
+        queryProfileTypesContent);
   }
 }

@@ -3,7 +3,6 @@ import {androidstudio} from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import React from 'react'
 import {useOutletContext} from "react-router-dom";
 import TabView from "../../components/tabs/tab-view";
-import FileExplorer from "../../components/file-explorer/file-explorer";
 import AppPackageExplorer from "../../components/file-explorer/app-package-explorer";
 import SchemaDefinition from "../../components/schema-definition/schema-definition";
 
@@ -106,11 +105,7 @@ function AppPackage() {
                 return {
                     "header": tab.tabName,
                     "content":
-                        tab.contentType === "filesystem" ? (
-                            <div className="overflow-auto max-h-[600px] p-4">
-                                <FileExplorer node={tab.payload} />
-                            </div>
-                        ) : tab.contentType === "app-package-explorer" ? (
+                        tab.contentType === "app-package-explorer" ? (
                             <div className="p-4">
                                 <AppPackageExplorer configHost={tab.payload} />
                             </div>
