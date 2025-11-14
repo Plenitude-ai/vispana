@@ -9,6 +9,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -86,7 +88,8 @@ public class VespaAppPackageFetcher {
             // Using the generic requestGetWithDefaultValue with InputStream.class
             try (InputStream fileStream =
                 requestGetWithDefaultValue(
-                    resolvedUrl, InputStream.class, new ByteArrayInputStream(new byte[0]))) {
+                        resolvedUrl, Resource.class, new ByteArrayResource(new byte[0]))
+                    .getInputStream()) {
               byte[] buffer = new byte[BUFFER_SIZE];
               int bytesRead;
 
