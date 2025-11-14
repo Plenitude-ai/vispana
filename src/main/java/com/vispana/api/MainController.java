@@ -3,9 +3,9 @@ package com.vispana.api;
 import com.vispana.api.model.VispanaRoot;
 import com.vispana.vespa.query.VespaQueryClient;
 import com.vispana.vespa.state.VespaStateClient;
+import com.vispana.vespa.state.helpers.AppPackageFetcher;
 import com.vispana.vespa.state.helpers.AppPackageFilesystem;
 import com.vispana.vespa.state.helpers.ApplicationUrlFetcher;
-import com.vispana.vespa.state.helpers.VespaAppPackageFetcher;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -26,16 +26,16 @@ public class MainController {
 
   private final VespaStateClient vespaStateClient;
   private final VespaQueryClient vespaQueryClient;
-  private final VespaAppPackageFetcher appPackageFetcher;
+  private final AppPackageFetcher appPackageFetcher;
 
   @Autowired
   public MainController(
       VespaStateClient vespaStateClient,
       VespaQueryClient vespaQueryClient,
-      VespaAppPackageFetcher appPackageFetcher) {
+      AppPackageFetcher appPackageFetcher) {
     this.vespaStateClient = vespaStateClient;
     this.vespaQueryClient = vespaQueryClient;
-    this.appPackageFetcher = new VespaAppPackageFetcher();
+    this.appPackageFetcher = new AppPackageFetcher();
   }
 
   @GetMapping(

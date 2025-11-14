@@ -14,15 +14,15 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 @Component
-public class VespaAppPackageFetcher {
+public class AppPackageFetcher {
 
-  private static final Logger logger = LoggerFactory.getLogger(VespaAppPackageFetcher.class);
+  private static final Logger logger = LoggerFactory.getLogger(AppPackageFetcher.class);
 
   // Buffer size for streaming
   // 8KB = good balance between memory usage and speed
   private static final int BUFFER_SIZE = 8192;
 
-  public VespaAppPackageFetcher() {}
+  public AppPackageFetcher() {}
 
   /**
    * Streams the application package as ZIP directly to the output stream. This avoids loading the
