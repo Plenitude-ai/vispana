@@ -100,9 +100,9 @@ function AppPackage() {
     
     // Add new lazy-loading app package explorer
     // This fetches files on-demand to avoid OOM
-    // Pass configHost which the backend will convert to full app URL
+    // Pass configHost which the backend will convert to Raw App URL
     tabsContent.push({
-        "tabName": "Full App Package",
+        "tabName": "Raw App Package",
         "payload": vespaState.configHost,
         "contentType": "app-package-explorer"
     });
