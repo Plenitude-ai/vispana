@@ -152,7 +152,7 @@ function FileNode({ node, configHost, level = 0 }) {
                 onClick={handleClick}
             >
                 <span className="select-none">{icon}</span> {node.name}
-                {loadingDetails && <span className="ml-2 text-gray-400 text-sm">(loading...)</span>}
+                {loadingDetails && <span className="ml-2 text-gray-400 text-sm">(Loading...)</span>}
             </div>
             
             {/* Show file content if expanded */}
@@ -170,15 +170,16 @@ function FileNode({ node, configHost, level = 0 }) {
             )}
             
             {/* Show content only for non-binary files */}
-            {node.isFile && expanded && details && details.content && (
-                details.url?.endsWith('.jar') ? (
-                    <p className="text-gray-400 text-sm p-2">Binary file: Not displayable as text</p>
-                ) : (
-                    <pre className="bg-gray-900 p-2 mt-1 mb-2 text-xs overflow-x-auto rounded border border-gray-700">
-                        {details.content}
-                    </pre>
+            {node.isFile && expanded && details && (
+                    details.content ? (
+                        <pre className="bg-gray-900 p-2 mt-1 mb-2 text-xs overflow-x-auto rounded border border-gray-700">
+                            {details.content}
+                        </pre>
+                    ) : (
+                        <p className="text-gray-400 text-sm p-2">No content available</p>
+                    )
                 )
-            )}
+            }
             
             {/* Show directory children if expanded */}
             {!node.isFile && expanded && node.children && (

@@ -200,9 +200,7 @@ public class AppPackageFilesystem {
    * Fetches the content of a single file. This is called on-demand when user clicks on a file in
    * the UI.
    */
-  public static HashMap<String, String> getFileContent(String configHost, String relativePath) {
-    String appUrl = ApplicationUrlFetcher.fetch(configHost);
-    String fileUrl = appUrl + "/content/" + relativePath;
+  public static String getFileContent(String fileUrl) {
     logger.info("Fetching file content from: {}", fileUrl);
 
     try {
@@ -210,29 +208,14 @@ public class AppPackageFilesystem {
       String content = requestGetWithDefaultValue(fileUrl, String.class, "");
       if (content.isEmpty()) {
         logger.warn("File content is empty or unreadable: {}", fileUrl);
-        return new HashMap<String, String>() {
-          {
-            put("url", fileUrl);
-            put("content", "// Empty file or could not read as text");
-          }
-        };
+        return "// Empty file or could not read as text";
       }
       logger.info("Successfully fetched file content ({} chars)", content.length());
-      return new HashMap<String, String>() {
-        {
-          put("url", fileUrl);
-          put("content", content);
-        }
-      };
+      return content;
 
     } catch (Exception e) {
       logger.error("Error fetching file content from: {}", fileUrl, e);
-      return new HashMap<String, String>() {
-        {
-          put("url", fileUrl);
-          put("content", "// Error reading file: " + e.getMessage());
-        }
-      };
+      return "// Error reading file: " + e.getMessage();
     }
   }
 }

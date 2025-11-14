@@ -4,8 +4,11 @@ import com.vispana.api.model.VispanaRoot;
 import com.vispana.vespa.query.VespaQueryClient;
 import com.vispana.vespa.state.VespaStateClient;
 import com.vispana.vespa.state.helpers.AppPackageFilesystem;
+import com.vispana.vespa.state.helpers.ApplicationUrlFetcher;
 import com.vispana.vespa.state.helpers.VespaAppPackageFetcher;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -80,8 +83,25 @@ public class MainController {
       @RequestParam(name = "config_host") String configHost,
       @RequestParam(name = "file_path") String filePath) {
 
-    HashMap<String, String> file_Url_Content =
-        AppPackageFilesystem.getFileContent(configHost, filePath);
+    HashMap<String, String> file_Url_Content = new HashMap<>();
+
+    // Build file full URL
+    String appUrl = ApplicationUrlFetcher.fetch(configHost);
+    String fileUrl = appUrl + "/content/" + filePath;
+    file_Url_Content.put("url", fileUrl);
+
+    // If file is NON human-readable, return placeholder
+    List<String> nonReadableFormats = Arrays.asList("jar", "zip", "class");
+    String fileExtension = getLastElement(filePath, "\\.");
+    if (nonReadableFormats.contains(fileExtension) || filePath.contains("models/")) {
+      file_Url_Content.put("content", "// Binary file: Not displayable as text");
+      return file_Url_Content;
+    }
+
+    // Get file content
+    String content = AppPackageFilesystem.getFileContent(fileUrl);
+    file_Url_Content.put("content", content);
+
     return file_Url_Content;
   }
 
@@ -108,5 +128,13 @@ public class MainController {
     // Content-Length is not set - using chunked transfer encoding for streaming
 
     return ResponseEntity.ok().headers(headers).body(stream);
+  }
+
+  private String getLastElement(String string, String delimiter) {
+    String[] result = string.split(delimiter);
+    if (result.length > 0) {
+      return result[result.length - 1];
+    }
+    return "";
   }
 }
