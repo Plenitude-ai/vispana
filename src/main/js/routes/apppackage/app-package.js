@@ -43,16 +43,6 @@ function AppPackage() {
             "contentType": "xml"
         })
     }
-
-    // possibly add models
-    let modelsContent = vespaState.applicationPackage.modelsContent;
-    if (modelsContent.length > 0) {
-        tabsContent.push({
-            "tabName": "models",
-            "payload": JSON.stringify(modelsContent, null, 2),
-            "contentType": "json"
-        })
-    }
     
     // possibly add query-profiles with their XML content
     let queryProfilesContent = vespaState.applicationPackage.queryProfilesContent;

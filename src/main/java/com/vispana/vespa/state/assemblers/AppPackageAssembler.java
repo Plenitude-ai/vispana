@@ -16,29 +16,6 @@ public class AppPackageAssembler {
     var hostContent = requestGetWithDefaultValue(appUrl + "/content/hosts.xml", String.class, "");
     var servicesContent = requestGet(appUrl + "/content/services.xml", String.class);
 
-    List<String> modelsContent =
-        requestGetWithDefaultValue(appUrl + "/content/models/", List.class, List.of());
-
-    // Parse JSON array and extract model names
-    if (modelsContent.isEmpty()) {
-      modelsContent = List.of();
-    } else {
-      try {
-        modelsContent =
-            modelsContent.stream()
-                .map(
-                    fullUrl -> {
-                      // Subtract filename from URL
-                      int lastSlashIndex = fullUrl.lastIndexOf('/');
-                      return lastSlashIndex >= 0 ? fullUrl.substring(lastSlashIndex + 1) : fullUrl;
-                    })
-                .toList();
-      } catch (Exception e) {
-        // Handle JSON parsing error - return empty list or throw exception
-        modelsContent = List.of("Error parsing models");
-      }
-    }
-
     Map<String, String> queryProfilesContent = new HashMap<String, String>();
     List<String> queryProfileNames =
         requestGetWithDefaultValue(
@@ -104,7 +81,6 @@ public class AppPackageAssembler {
         appSchema.getGeneration().toString(),
         servicesContent,
         hostContent,
-        modelsContent,
         queryProfilesContent,
         queryProfileTypesContent
         // , javaComponentsContent
