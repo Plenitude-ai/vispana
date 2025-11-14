@@ -87,6 +87,9 @@ function AppPackage() {
         })
     }
     
+    // add the schemas
+    tabsContent.push(...schemas)
+
     // Add new lazy-loading app package explorer
     // This fetches files on-demand to avoid OOM
     // Pass configHost which the backend will convert to Raw App URL
@@ -95,9 +98,6 @@ function AppPackage() {
         "payload": vespaState.configHost,
         "contentType": "app-package-explorer"
     });
-
-    // add the schemas
-    tabsContent.push(...schemas)
 
     // build common tabs
     const tabs = tabsContent
