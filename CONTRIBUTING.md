@@ -65,3 +65,27 @@ chore: Changes to the build process or auxiliary tools and libraries such as doc
 ## Image Publishing
 
 Upon merges to master, Vispana will automatically generate a new image in Docker hub.
+
+
+### Local development advices
+
+For vscode debugging of the Spring Boot app, you can use in your `./.vscode/launch.json`:
+```json
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Debug (Launch) VISPANA SPRING-BOOT",
+            "request": "launch",
+            "mainClass": "com.vispana.Main",
+            "projectName": "vispana",
+            "cwd": "${workspaceFolder}",
+            "args": ""
+        }
+   ]
+}
+```
