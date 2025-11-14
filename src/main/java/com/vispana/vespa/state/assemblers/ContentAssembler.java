@@ -47,41 +47,42 @@ public class ContentAssembler {
       String configHostName) {
     var contentDistributionUrl = configHost + "/config/v1/vespa.config.content.distribution/";
 
-    var contentClusters = requestGet(contentDistributionUrl, ContentDistributionSchema.class).getConfigs().stream()
-        .map(NameExtractorFromUrl::nameFromUrl)
-        .map(
-            clusterName -> {
-              // contentNodes
-              var dispatcher = fetchDispatcherData(
-                  configHost, clusterName, vespaVersion, appPackage, configHostName);
-              var contentNodes = contentNodes(vespaMetrics, clusterName, dispatcher);
+    var contentClusters =
+        requestGet(contentDistributionUrl, ContentDistributionSchema.class).getConfigs().stream()
+            .map(NameExtractorFromUrl::nameFromUrl)
+            .map(
+                clusterName -> {
+                  // contentNodes
+                  var dispatcher =
+                      fetchDispatcherData(
+                          configHost, clusterName, vespaVersion, appPackage, configHostName);
+                  var contentNodes = contentNodes(vespaMetrics, clusterName, dispatcher);
 
-              // contentData
-              var schemas = fetchSchemas(configHost, clusterName);
-              var contentData = fetchSchemaContent(appUrl, schemas, contentNodes);
+                  // contentData
+                  var schemas = fetchSchemas(configHost, clusterName);
+                  var contentData = fetchSchemaContent(appUrl, schemas, contentNodes);
 
-              // contentOverview
-              var contentDistribution = fetchContentDistributionData(configHost, clusterName);
-              var distribution = contentDistribution.getCluster().getAdditionalProperties().get(clusterName);
-              var redundancy = distribution.getRedundancy().intValue();
-              var copies = distribution.getReadyCopies().intValue();
-              var hostsPerGroup = hostsPerGroup(distribution);
-              var hostsCount = hostsPerGroup.size();
-              var notYetConverged = contentNodes.stream()
-                  .map(contentNode -> contentNode.hostMetrics().notYetConverged())
-                  .reduce(0, Integer::sum);
-              var contentOverview = new ContentOverview(
-                  hostsCount,
-                  copies,
-                  redundancy,
-                  notYetConverged,
-                  hostsPerGroup);
+                  // contentOverview
+                  var contentDistribution = fetchContentDistributionData(configHost, clusterName);
+                  var distribution =
+                      contentDistribution.getCluster().getAdditionalProperties().get(clusterName);
+                  var redundancy = distribution.getRedundancy().intValue();
+                  var copies = distribution.getReadyCopies().intValue();
+                  var hostsPerGroup = hostsPerGroup(distribution);
+                  var hostsCount = hostsPerGroup.size();
+                  var notYetConverged =
+                      contentNodes.stream()
+                          .map(contentNode -> contentNode.hostMetrics().notYetConverged())
+                          .reduce(0, Integer::sum);
+                  var contentOverview =
+                      new ContentOverview(
+                          hostsCount, copies, redundancy, notYetConverged, hostsPerGroup);
 
-              // Final ContentCluster
-              return new ContentCluster(
-                  clusterName, contentOverview, contentData, contentNodes);
-            })
-        .toList();
+                  // Final ContentCluster
+                  return new ContentCluster(
+                      clusterName, contentOverview, contentData, contentNodes);
+                })
+            .toList();
 
     return new ContentNodes(contentClusters);
   }
@@ -96,21 +97,23 @@ public class ContentAssembler {
 
               // Get schema's rank-profiles
               var rankProfilesUrl = appUrl + "/content/schemas/" + schemaName + "/";
-              List<String> rankProfilesUrlsList = requestGetWithDefaultValue(rankProfilesUrl, List.class, List.of());
+              List<String> rankProfilesUrlsList =
+                  requestGetWithDefaultValue(rankProfilesUrl, List.class, List.of());
               Map<String, String> schemaRankProfiles;
               if (!rankProfilesUrlsList.isEmpty()) {
-                schemaRankProfiles = rankProfilesUrlsList.stream()
-                    .collect(
-                        Collectors.toMap(
-                            rankProfileUrl -> {
-                              // Extract name from URL: get last part and remove ".profile"
-                              String[] urlParts = rankProfileUrl.split("/");
-                              return urlParts[urlParts.length - 1].replace(".profile", "");
-                            },
-                            rankProfileUrl -> {
-                              // Fetch content from the rank profile URL
-                              return requestGet(rankProfileUrl, String.class);
-                            }));
+                schemaRankProfiles =
+                    rankProfilesUrlsList.stream()
+                        .collect(
+                            Collectors.toMap(
+                                rankProfileUrl -> {
+                                  // Extract name from URL: get last part and remove ".profile"
+                                  String[] urlParts = rankProfileUrl.split("/");
+                                  return urlParts[urlParts.length - 1].replace(".profile", "");
+                                },
+                                rankProfileUrl -> {
+                                  // Fetch content from the rank profile URL
+                                  return requestGet(rankProfileUrl, String.class);
+                                }));
               } else {
                 schemaRankProfiles = Map.of();
               }
@@ -121,7 +124,8 @@ public class ContentAssembler {
 
               var schemaDocCounts = countDocuments(schemaName, contentNodeByGroup);
 
-              return new ContentData(new Schema(schemaName, schemaContent, schemaRankProfiles), schemaDocCounts);
+              return new ContentData(
+                  new Schema(schemaName, schemaContent, schemaRankProfiles), schemaDocCounts);
             })
         .toList();
   }
