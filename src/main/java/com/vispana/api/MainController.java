@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 @RestController
 public class MainController {
@@ -85,24 +86,27 @@ public class MainController {
   }
 
   /**
-   * Downloads the entire application package as a ZIP archive. The ZIP is streamed to avoid holding
-   * everything in memory.
+   * Downloads the entire application package as a ZIP archive. Uses streaming to handle large
+   * packages (up to several GB) without OOM errors.
    */
   @GetMapping(value = "/api/apppackage/download")
-  public ResponseEntity<byte[]> downloadAppPackage(
+  public ResponseEntity<StreamingResponseBody> downloadAppPackage(
       @RequestParam(name = "config_host") String configHost) {
-    try {
-      byte[] zipBytes = appPackageFetcher.buildAppPackageBinary(configHost);
 
-      HttpHeaders headers = new HttpHeaders();
-      headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-      headers.setContentDispositionFormData("attachment", "vespa-app-package.zip");
-      headers.setContentLength(zipBytes.length);
+    StreamingResponseBody stream =
+        outputStream -> {
+          try {
+            appPackageFetcher.streamAppPackageAsZip(configHost, outputStream);
+          } catch (Exception e) {
+            throw new RuntimeException("Failed to stream app package", e);
+          }
+        };
 
-      return ResponseEntity.ok().headers(headers).body(zipBytes);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+    headers.setContentDispositionFormData("attachment", "vespa-app-package.zip");
+    // Content-Length is not set - using chunked transfer encoding for streaming
 
-    } catch (Exception e) {
-      return ResponseEntity.internalServerError().build();
-    }
+    return ResponseEntity.ok().headers(headers).body(stream);
   }
 }

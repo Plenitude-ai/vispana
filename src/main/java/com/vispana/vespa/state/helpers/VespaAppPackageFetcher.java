@@ -7,23 +7,32 @@ import java.net.URI;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class VespaAppPackageFetcher {
 
+  private static final Logger logger = LoggerFactory.getLogger(VespaAppPackageFetcher.class);
+
+  // Buffer size for streaming
+  // 8KB = good balance between memory usage and speed
+  private static final int BUFFER_SIZE = 8192;
+
   public VespaAppPackageFetcher() {}
 
   /**
-   * Recursively downloads the application package from the vespa appUrl and returns a ZIP as a
-   * byte[].
+   * Streams the application package as ZIP directly to the output stream. This avoids loading the
+   * entire package into memory - suitable for large packages.
    *
-   * @param appUrl the root "content" URL (must end with a slash ideally)
-   * @return byte[] containing zip archive
+   * @param configHost the Vespa config host
+   * @param outputStream the stream to write the ZIP to
    * @throws IOException on IO problems
    * @throws InterruptedException on HTTP client interruption
    */
-  public byte[] buildAppPackageBinary(String configHost) throws IOException, InterruptedException {
+  public void streamAppPackageAsZip(String configHost, OutputStream outputStream)
+      throws IOException, InterruptedException {
     String appUrl = ApplicationUrlFetcher.fetch(configHost);
     String contentUrl = appUrl + "/content/";
 
@@ -31,14 +40,8 @@ public class VespaAppPackageFetcher {
     Queue<String> queue = new LinkedList<>();
     queue.add(contentUrl);
 
-    // Collect files as map: zipEntryPath -> byte[]
-    // But instead of storing them all before zipping, we'll stream them into
-    // ZipOutputStream.
-    // For buildAppPackageBinary we need the full byte[] at the end, so we stream
-    // into a ByteArrayOutputStream.
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try (ZipOutputStream zos = new ZipOutputStream(baos)) {
-
+    // Stream directly to output - never hold entire ZIP in memory
+    try (ZipOutputStream zos = new ZipOutputStream(outputStream)) {
       // Keep a set of zip entries already added to avoid duplicates (especially
       // directories)
       Set<String> addedEntries = new HashSet<>();
@@ -70,15 +73,35 @@ public class VespaAppPackageFetcher {
             // enqueue directory for further listing
             queue.add(resolvedUrl);
           } else {
-            // It's a file: GET its bytes and add to the zip under zipPath
-            byte[] fileContent = requestGetWithDefaultValue(resolvedUrl, byte[].class, new byte[0]);
+            logger.debug("Streaming file: {}", zipPath);
 
             // Ensure parent directories exist in ZIP
             createParentDirsInZip(zos, zipPath, addedEntries);
 
+            // Create ZIP entry for this file
             ZipEntry fileEntry = new ZipEntry(zipPath);
             zos.putNextEntry(fileEntry);
-            zos.write(fileContent);
+
+            // Stream the file in chunks
+            // Using the generic requestGetWithDefaultValue with InputStream.class
+            try (InputStream fileStream =
+                requestGetWithDefaultValue(
+                    resolvedUrl, InputStream.class, new ByteArrayInputStream(new byte[0]))) {
+              byte[] buffer = new byte[BUFFER_SIZE];
+              int bytesRead;
+
+              // Keep reading chunks from remote into buffer until file is done
+              while ((bytesRead = fileStream.read(buffer)) != -1) {
+                // Write this chunk to ZIP (which streams to browser)
+                zos.write(buffer, 0, bytesRead);
+              }
+
+              logger.debug("Finished streaming: {}", zipPath);
+            } catch (Exception e) {
+              logger.warn("Failed to stream file {}: {}", zipPath, e.getMessage());
+              // Continue with other files even if one fails
+            }
+
             zos.closeEntry();
             addedEntries.add(zipPath);
           }
@@ -87,8 +110,6 @@ public class VespaAppPackageFetcher {
 
       zos.finish();
     }
-
-    return baos.toByteArray();
   }
 
   // Helpers
